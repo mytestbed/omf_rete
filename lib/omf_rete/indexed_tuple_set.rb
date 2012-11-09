@@ -120,7 +120,7 @@ module OMF::Rete
       desc = @description.collect do |e| e || '*' end
       out.write("ts: [#{desc.join(', ')}]")
       ind = @indexMap.collect do |i| @description[i] end
-      out.write("  (index: [#{ind.join(', ')}])#{sep}")
+      out.write("  (index: [#{ind.sort.join(', ')}])#{sep}")
       @source.describe(out, offset + incr, incr, sep) if @source 
     end
     

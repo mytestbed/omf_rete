@@ -17,15 +17,20 @@ class TestPlanner < Test::Unit::TestCase
   
   def _test_plan(plan, storeSize, expected = nil, inTuples = nil, outTuples = nil, outPattern = nil)
     store = Store.create(storeSize)
-    pb = PlanBuilder.new(plan, store)
-    pb.build
 
-    #pb.describe
-
+    # pb = PlanBuilder.new(plan, store)
+    # pb.build
+    # #pb.describe
+    # resT = []
+    # result = pb.materialize(outPattern) do |t|
+      # resT << t
+    # end
+    
     resT = []
-    result = pb.materialize(outPattern) do |t|
+    result = store.subscribe(:test, plan, outPattern) do |t|
       resT << t
     end
+    
       
     out = StringIO.new
     #result.describe(out, 0, 0, '|')
@@ -149,7 +154,7 @@ out: [y?]
     plan = [[:x?, :b, :y?], [:x?, :y?, :d]]    
     exp = %{\
 out: [y?, x?]
-  join: [x?, y?] => [y?, x?]
+  join: [x?, y?] => [x?, y?]
     ts: [x?, b, y?]  (index: [x?, y?])
     ts: [x?, y?, d]  (index: [x?, y?])
 }

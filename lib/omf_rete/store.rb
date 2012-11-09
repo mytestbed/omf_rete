@@ -1,5 +1,6 @@
 
 require 'omf_rete'
+
   
 module OMF::Rete::Store
   DEF_TYPE = :alpha
@@ -20,7 +21,20 @@ module OMF::Rete::Store
     raise "'query' - Not implemented."
   end
   
+  def subscribe(name, query, out_pattern = nil, &block)
+    require 'omf_rete/planner/plan_builder'
+
+    pb = PlanBuilder.new(query, self)
+    pb.build
+    pb.materialize(out_pattern, &block)
+  end
+  
   def addTuple(tarray)
+  end
+  
+  # alias
+  def add(*els)
+    addTuple(els)
   end
 
   # Return a set of tuples which match +pattern+. Pattern is

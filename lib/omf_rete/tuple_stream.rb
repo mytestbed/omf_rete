@@ -20,7 +20,7 @@ module OMF::Rete
       end
     end
     
-    # Check if +tuple+ can be produced by this stream through the
+    # Return true if +tuple+ can be produced by this stream through the
     # normal (+addTuple+) channels.
     #
     def check_for_tuple(tuple)
@@ -162,7 +162,7 @@ module OMF::Rete
       end
     end
     
-    # Check if +tuple+ can be produced by this stream. A
+    # Return true if +tuple+ can be produced by this stream. A
     # +ResultStream+ only narrows a stream, so we need to
     # potentially expand it (with nil) and pass it up to the
     # +source+ of this stream.
@@ -201,28 +201,13 @@ module OMF::Rete
     def initialize(project_pattern, description = project_pattern, receiver = nil, &block)
       super project_pattern, description, description, receiver, &block
     end
-
-#      def initialize(description, receiver = nil, &block)
-#        super description
-#        @receiver = receiver
-#        @block = block
-#      end
     
-#      def addTuple(tuple)
-#        if @result_map
-#          rtuple = @result_map.collect do |i| tuple[i] end
-#        else
-#          rtuple = tuple
-#        end
-#        if (out = @block.call(*rtuple))
-#          @receiver.addTuple(tuple)
-#        end
-#      end    
-    
-    # Check if +tuple+ can be produced by this stream. For
+    # Return true if +tuple+ can be produced by this stream. For
     # this we need to check first if it would pass this filter
     # before we check if the source for this filter is being
     # able to produce the tuple in question.
+    #
+    # TODO: This currently doesn't work for tuples with wild cards.
     #
     def check_for_tuple(tuple)
       if @sourcce 

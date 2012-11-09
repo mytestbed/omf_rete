@@ -86,7 +86,7 @@ module OMF::Rete
       result = @combinePattern.collect do |side, index|
         (side == 0) ? @left.binding_at(index) : @right.binding_at(index)
       end
-      out.write("join: [#{@left.indexPattern.join(', ')}] => [#{result.join(', ')}]#{sep}")
+      out.write("join: [#{@left.indexPattern.sort.join(', ')}] => [#{result.sort.join(', ')}]#{sep}")
       @left.describe(out, offset + incr, incr, sep) 
       @right.describe(out, offset + incr, incr, sep)         
     end

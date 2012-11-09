@@ -12,6 +12,11 @@ class TestStore < Test::Unit::TestCase
     store.addTuple [:a, :b, :c]
   end
   
+  def test_add_tuple2
+    store = Store.create(3)
+    store.add :a, :b, :c
+  end
+
   def test_find
     t1 = [:a, :b, :c]
     t2 = [t1[0], t1[1], :d] 
@@ -35,6 +40,15 @@ class TestStore < Test::Unit::TestCase
     r = store.find [:b, nil, nil]
     assert_equal r, Set.new()
 
+  end
+
+  def test_find_tuple2
+    store = Store.create(3)
+    store.add :a, :b, :c
+    
+    t1 = [:a, :b, :c]
+    r = store.find t1
+    assert_equal r, Set.new([t1])
   end
 
   def test_tset_init
