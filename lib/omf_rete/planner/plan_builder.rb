@@ -254,10 +254,16 @@ module OMF::Rete
           end              
         end
         description = projectPattern
-        src = plan.materialize(nil, projectPattern, opts)
+        
+        #src = plan.materialize(nil, projectPattern, opts)
+        src = ProcessingTupleStream.new(projectPattern, projectPattern, plan.description) 
         frontS, endS = _materialize_result_stream(plan, projectPattern, opts, &block)
+        
         src.receiver = frontS
         frontS.source = src
+
+        @store.registerTSet(src, plan.description) if @store
+
         endS
       end
     

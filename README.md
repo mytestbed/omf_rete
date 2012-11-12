@@ -13,9 +13,8 @@ tuples.
 The following code snippet creates a simple RDF store and adds a few triplets
 to it.
 
-  store = OMF::Rete::Store.new(:subj => String, :pred => String, :obj => Object)
+  store = OMF::Rete::Store.new(3)
   store.add('myFridge', 'contains', 'milk')
-  store.addNamed(:subj => 'myFridge', :obj => 'broken', :pred => 'status')
 
 A filter consists of an array of tuple +patterns+ and a +block+ to be called when the store
 contains a set of tuples matching the +pattern+.
@@ -50,7 +49,8 @@ The following code snippet reports anything which is broken.
   ]) do |m|
     puts "Something is broken"
   end
-  
+
+_Not implemented yet_
 Similar to OMF::Rete::Store#addNamed we can describe a pattern with a hash. Any value not named is automatically 
 wildcarded. Therefore, an alternative represenation of the previous filter is as follows:
 
@@ -115,7 +115,7 @@ and +false+ for all others. To further simplify this and also reduce the search 
   store.subscribe(:replace_old_ones, [
     [:fridge?, 'status', 'broken'],
     [:fridge?, 'age', :age?],
-    filter(:age?) do |age| age > 10 end
+    filter(:age?) { |age| age > 10 }
   ]) do |match|
     puts "Replace #{match[:fridge]}"
   end

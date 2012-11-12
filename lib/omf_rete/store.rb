@@ -24,7 +24,7 @@ module OMF::Rete::Store
   def subscribe(name, query, out_pattern = nil, &block)
     require 'omf_rete/planner/plan_builder'
 
-    pb = PlanBuilder.new(query, self)
+    pb = OMF::Rete::Planner::PlanBuilder.new(query, self)
     pb.build
     pb.materialize(out_pattern, &block)
   end
