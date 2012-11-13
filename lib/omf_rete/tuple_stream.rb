@@ -1,4 +1,5 @@
 
+require 'omf_rete/tuple'
 
 module OMF::Rete
   #
@@ -149,12 +150,13 @@ module OMF::Rete
     
     def addTuple(tuple)
       if @result_map
-        rtuple = @result_map.collect do |i| tuple[i] end
+        ta = @result_map.collect do |i| tuple[i] end
       else
-        rtuple = tuple
+        ta = tuple
       end
+      rtuple = Tuple.new(ta, @description)
       if @results
-        if @results.add?(rtuple)
+        if @results.add?(ta)
           @block.call(rtuple)
         end
       else

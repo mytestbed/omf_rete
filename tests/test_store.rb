@@ -34,10 +34,19 @@ class TestStore < Test::Unit::TestCase
     r = store.find [t1[0], nil, t1[2]]
     assert_equal r, Set.new([t1])
     
+    r = store.find [t1[0], :_, t1[2]]
+    assert_equal r, Set.new([t1])
+
     r = store.find [nil, nil, nil]
+    assert_equal r, Set.new([t1, t2])
+
+    r = store.find [:_, :_, :_]
     assert_equal r, Set.new([t1, t2])
     
     r = store.find [:b, nil, nil]
+    assert_equal r, Set.new()
+
+    r = store.find [:b, :_, :_]
     assert_equal r, Set.new()
 
   end

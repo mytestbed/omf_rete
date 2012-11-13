@@ -17,9 +17,9 @@ module OMF::Rete::Store
   
   #--- INTERFACE ---
   
-  def query(queryPattern, projectPattern = nil, &block)
-    raise "'query' - Not implemented."
-  end
+  # def query(queryPattern, projectPattern = nil, &block)
+    # raise "'query' - Not implemented."
+  # end
   
   def subscribe(name, query, out_pattern = nil, &block)
     require 'omf_rete/planner/plan_builder'

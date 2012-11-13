@@ -18,32 +18,31 @@ class TestPlanner < Test::Unit::TestCase
   def _test_plan(plan, storeSize, expected = nil, inTuples = nil, outTuples = nil, outPattern = nil)
     store = Store.create(storeSize)
 
-    # pb = PlanBuilder.new(plan, store)
-    # pb.build
-    # #pb.describe
-    # resT = []
-    # result = pb.materialize(outPattern) do |t|
-      # resT << t
-    # end
-    
+    # with empty store
     resT = []
     result = store.subscribe(:test, plan, outPattern) do |t|
-      resT << t
+      resT << t.to_a
     end
-    
-      
+  
     out = StringIO.new
     #result.describe(out, 0, 0, '|')
     result.describe(out)
     assert_equal(expected, out.string) if expected
     
     if (inTuples)
+      
       inTuples.each do |t|
         store.addTuple(t)
       end
       assert_equal(outTuples, resT)
+      
+      # same test with already full store
+      resT2 = []
+      result2 = store.subscribe(:test2, plan, outPattern) do |t|
+        resT2 << t.to_a
+      end
+      assert_equal(outTuples, resT2)
     end
-    result
   end
 
   def test_build_simple_plan
@@ -212,8 +211,8 @@ out: [x?, y?, z?]
     store.addTuple([:b, :hasParent, :p])
 
     resT = Set.new
-    store.query([[:x?, :sibling_of, :y?]]) do |t|
-      resT << t
+    store.subscribe(:r1, [[:x?, :sibling_of, :y?]]) do |t|
+      resT << t.to_a
     end
     assert_equal(Set.new, resT)
     
@@ -222,8 +221,8 @@ out: [x?, y?, z?]
       [:y?, :hasParent, :p?],
       OMF::Rete.differ(:x?, :y?) 
     ]
-    store.query(subscription, [:x?, :y?]) do |x, y|
-      store.addTuple([x, :sibling_of, y])
+    store.subscribe(:r2, subscription, [:x?, :y?]) do |t|
+      store.addTuple([t[:x?], :sibling_of, t[:y?]])
     end
 
     assert_equal(Set.new([[:b, :a], [:a, :b]]), resT)

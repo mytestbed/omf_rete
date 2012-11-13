@@ -113,22 +113,18 @@ module OMF::Rete::Store::Alpha
       length.times do @index << {} end 
     end
     
-    def query(queryPattern, projectPattern = nil, &block)
-      pb = PlanBuilder.new(queryPattern, self)
-      pb.build
-      pb.materialize(projectPattern, &block)
-    end
     
     # Register a +TSet+ and add all tuples currently
     # and in the future matching +pattern+
     #
     def registerTSet(tset, pattern)
+      #puts "registerTSet: #{pattern}"
       pat = pattern.collect do |el|
         (el.is_a?(Symbol) && el.to_s.end_with?('?')) ? nil : el
       end
       @root.registerTSet(tset, pat)
       # seed tset which already stored data
-      find(pattern).each do |t|
+      find(pat).each do |t|
         tset.addTuple(t)
       end
       tset
@@ -157,16 +153,20 @@ module OMF::Rete::Store::Alpha
     # nil element is considered a wildcard.
     #
     def find(pattern)
+      #puts "patern: #{pattern.inspect}"
       seta = []
       allWildcards = true
       @length.times do |i|
         if (item = pattern[i])
-          allWildcards = false
-          res = @index[i][item]
-          #puts "res: index #{i}, res: #{res.inspect}"
-          seta << res if res  # only add if non-nil
+          if (item != :_)
+            allWildcards = false
+            res = @index[i][item] || Set.new
+            #puts "res: index #{i}, res: #{res.inspect}"
+            seta << res 
+          end
         end
       end
+
       if (allWildcards)
         res = Set.new
         @index[0].each_value do |s|

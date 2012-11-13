@@ -20,7 +20,7 @@ class TestFilter < Test::Unit::TestCase
 
     resT = []
     result = pb.materialize(outPattern) do |t|
-      resT << t
+      resT << t.to_a
     end
       
     out = StringIO.new
