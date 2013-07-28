@@ -37,6 +37,17 @@ module OMF::Rete::Store
     addTuple(els)
   end
 
+  # Remove a tuple from the store
+  #
+  def removeTuple(*els)
+  end
+  
+  # alias
+  def remove(*els)
+    removeTuple(els)
+  end
+
+  
   # Return a set of tuples which match +pattern+. Pattern is
   # a tuples of the same length this store is configured for
   # where any non-nil element is matched directly and any

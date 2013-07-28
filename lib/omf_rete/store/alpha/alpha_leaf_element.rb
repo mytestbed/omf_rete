@@ -2,7 +2,7 @@
 require 'omf_rete/store/alpha/alpha_element'
 
 module OMF::Rete::Store::Alpha
-   
+
   # Module internal class, will only be instantiated by +Store+
   #
   class AlphaLeafElement < AlphaElement
@@ -12,7 +12,7 @@ module OMF::Rete::Store::Alpha
       @tsetIndex = {}
       @tsetWildcards = []
     end
-    
+
     # see Store
     #
     def registerTSet(tset, pattern)
@@ -37,5 +37,20 @@ module OMF::Rete::Store::Alpha
         s.addTuple(tarray)
       end
     end
-  end # AlphaLeafElement
+
+    def removeTuple(tarray)
+      # check if we have any matching tsets
+      item = tarray[@level]
+      if (arr = @tsetIndex[item])
+        arr.each do |s|
+          s.removeTuple(tarray)
+        end
+      end
+      @tsetWildcards.each do |s|
+        s.removeTuple(tarray)
+      end
+    end
+
+  end # class
+
 end # Moana::Filter::Store::Alpha
