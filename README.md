@@ -1,7 +1,7 @@
 
 # Introduction
 
-__Warning: This is embarrasingly out of date. Check tests for a more accurate 
+__Warning: This is embarrassingly out of date. Check tests for a more accurate 
 reflection of what's implemented__
 
 This library implements a tuple store with a query and subscribe mechanism. 
