@@ -1,26 +1,26 @@
 
 require 'omf_rete'
 
-  
+
 module OMF::Rete::Store
   DEF_TYPE = :alpha
-  
+
   def self.create(length, opts = {})
     case (type = opts[:type] || DEF_TYPE)
     when :alpha
-      require 'omf_rete/store/alpha/alpha_store'
+      require 'omf_rete/store/alpha_store'
       return OMF::Rete::Store::Alpha::Store.new(length, opts)
     else
       raise "Unknown store type '#{type}'"
     end
   end
-  
+
   #--- INTERFACE ---
-  
+
   # def query(queryPattern, projectPattern = nil, &block)
     # raise "'query' - Not implemented."
   # end
-  
+
   def subscribe(name, query, out_pattern = nil, &block)
     require 'omf_rete/planner/plan_builder'
 
@@ -28,10 +28,10 @@ module OMF::Rete::Store
     pb.build
     pb.materialize(out_pattern, &block)
   end
-  
+
   def addTuple(tarray)
   end
-  
+
   # alias
   def add(*els)
     addTuple(els)
@@ -41,13 +41,13 @@ module OMF::Rete::Store
   #
   def removeTuple(*els)
   end
-  
+
   # alias
   def remove(*els)
     removeTuple(els)
   end
 
-  
+
   # Return a set of tuples which match +pattern+. Pattern is
   # a tuples of the same length this store is configured for
   # where any non-nil element is matched directly and any
