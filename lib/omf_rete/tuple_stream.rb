@@ -3,15 +3,15 @@ require 'omf_rete/tuple'
 
 module OMF::Rete
   #
-  # This class provides functionality to process a 
-  # stream of tuples. 
+  # This class provides functionality to process a
+  # stream of tuples.
   #
   class AbstractTupleStream
     attr_accessor :source
     attr_reader :description
-    
+
     def initialize(description, source = nil)
-      @description = description 
+      @description = description
       @source = source
     end
 
@@ -20,14 +20,14 @@ module OMF::Rete
         el == bname
       end
     end
-    
+
     # Return true if +tuple+ can be produced by this stream through the
     # normal (+addTuple+) channels.
     #
     def check_for_tuple(tuple)
       raise "Method 'check_for_tuple' is not implemented"
     end
-    
+
     def describe(out = STDOUT, offset = 0, incr = 2, sep = "\n")
       out.write(" " * offset)
       _describe(out, sep)
@@ -46,7 +46,7 @@ module OMF::Rete
   #
   class ProcessingTupleStream < AbstractTupleStream
     attr_accessor :receiver
-    
+
     def initialize(project_pattern, out_description = project_pattern, in_description = nil, receiver = nil, &block)
       @project_pattern = project_pattern
       super out_description
@@ -57,11 +57,11 @@ module OMF::Rete
       @receiver = receiver
       @on_add_block = block
     end
-    
+
     def on_add(&block)
       @on_add_block = block
     end
-    
+
     def on_remove(&block)
       @on_remove_block = block
     end
@@ -70,13 +70,17 @@ module OMF::Rete
       if (result = process(tuple, @on_add_block))
         @receiver.addTuple(result)
       end
-    end    
-    
+    end
+
     def removeTuple(tuple)
       if (result = process(tuple, @on_remove_block))
         @receiver.removeTuple(result)
       end
-    end    
+    end
+
+    def clear()
+      @receiver.clear
+    end
 
     def source=(source)
       super
@@ -96,9 +100,9 @@ module OMF::Rete
         end
       end
     end
-    
+
     private
-    
+
     def process(tuple, block)
       if @result_map
         rtuple = @result_map.collect do |i| tuple[i] end
@@ -119,7 +123,7 @@ module OMF::Rete
       result
     end
 
-    
+
     def _describe(out, sep )
       out.write("processing#{sep}")
     end
@@ -130,7 +134,7 @@ module OMF::Rete
   # for every incoming tuple.
   #
   # TODO: This should really be a subclass of +ProcessingTupleStream+, but
-  # we have supress_duplicates in this class which may be useful for 
+  # we have supress_duplicates in this class which may be useful for
   # +ProcessingTupleStream+ as well.
   #
   class ResultTupleStream < AbstractTupleStream
@@ -142,7 +146,7 @@ module OMF::Rete
         @results = Set.new
       end
     end
-    
+
     def source=(source)
       @source = source
       if @source.description != @description
@@ -155,7 +159,7 @@ module OMF::Rete
         end
       end
     end
-    
+
     def addTuple(tuple)
       if @result_map
         ta = @result_map.collect do |i| tuple[i] end
@@ -165,13 +169,13 @@ module OMF::Rete
       rtuple = Tuple.new(ta, @description)
       if @results
         if @results.add?(ta)
-          @block.arity == 1 ? @block.call(rtuple) : @block.call(rtuple, :add)          
+          @block.arity == 1 ? @block.call(rtuple) : @block.call(rtuple, :add)
         end
       else
         @block.arity == 1 ? @block.call(rtuple) : @block.call(rtuple, :add)
       end
     end
-    
+
     def removeTuple(tuple)
       if @result_map
         ta = @result_map.collect do |i| tuple[i] end
@@ -184,22 +188,26 @@ module OMF::Rete
       end
       @block.arity == 1 ? @block.call(rtuple) : @block.call(rtuple, :remove)
     end
-    
-    
+
+    def clear()
+      @results.clear if @results
+      @block.call(nil, :cleared) if @block.arity == 2
+    end
+
     # Return true if +tuple+ can be produced by this stream. A
     # +ResultStream+ only narrows a stream, so we need to
     # potentially expand it (with nil) and pass it up to the
     # +source+ of this stream.
     #
     def check_for_tuple(tuple)
-      if @sourcce 
+      if @sourcce
         # should check if +tuple+ has the same size as description
         if @result_map
           # need to expand
           unless @expand_map
             @expand_map = @source.description.collect do |name|
               index = @description.find_index do |n2| name == n2 end
-            end              
+            end
           end
           up_tuple = @expand_map.collect do |i| i nil? ? nil : tuple[i] end
         else
@@ -210,14 +218,14 @@ module OMF::Rete
     end
 
     private
-    
+
     def _describe(out, sep )
       out.write("out: [#{@description.join(', ')}]#{sep}")
     end
   end # ResultTupleStream
 
   # A filtering tuple stream calls the associated processing block
-  # for every incoming tuple and forwards the incoming tuple if the 
+  # for every incoming tuple and forwards the incoming tuple if the
   # the block returns true, otherwise it drops the tuple.
   #
   class FilterTupleStream < ProcessingTupleStream
@@ -225,7 +233,7 @@ module OMF::Rete
     def initialize(project_pattern, description = project_pattern, receiver = nil, &block)
       super project_pattern, description, description, receiver, &block
     end
-    
+
     # Return true if +tuple+ can be produced by this stream. For
     # this we need to check first if it would pass this filter
     # before we check if the source for this filter is being
@@ -234,7 +242,7 @@ module OMF::Rete
     # TODO: This currently doesn't work for tuples with wild cards.
     #
     def check_for_tuple(tuple)
-      if @sourcce 
+      if @sourcce
         # should check if +tuple+ has the same size as description
         if @result_map
           rtuple = @result_map.collect do |i| tuple[i] end
@@ -246,13 +254,13 @@ module OMF::Rete
         end
       end
     end
-    
+
     private
-    
+
     def verify_result(decision, original_tuple)
       decision ? original_tuple : nil
-    end    
-    
+    end
+
     def _describe(out, sep )
       out.write("filtering#{sep}")
     end

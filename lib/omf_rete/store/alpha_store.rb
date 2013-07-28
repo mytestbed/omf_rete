@@ -2,12 +2,12 @@ require 'set'
 require 'omf_rete/store/alpha/alpha_inner_element'
 require 'omf_rete/store/alpha/alpha_leaf_element'
 
-module OMF::Rete::Store::Alpha
+module OMF::Rete::Store
 
   #
   # Class to store tuples for use in MoanaFilter
   #
-  class Store #< MObject
+  class AlphaStore #< MObject
     include OMF::Rete::Store
 
     attr_reader :length
@@ -17,7 +17,7 @@ module OMF::Rete::Store::Alpha
     #
     def initialize(length, opts = {})
       @length = length
-      @root = AlphaInnerElement.new(0, length)
+      @root = Alpha::AlphaInnerElement.new(0, length)
       @index = []
       length.times do @index << {} end
     end
