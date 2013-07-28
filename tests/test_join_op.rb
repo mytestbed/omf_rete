@@ -47,4 +47,34 @@ class TestJoinOP < Test::Unit::TestCase
     r.addTuple(t2)
     assert_equal [['x', 'y', 'z']], out.to_a
   end
+  
+  # [:a :x?], [?x :c]
+  #
+  def test_remove1
+    t1 = ['a', 'b']
+    t2 = ['b', 'd']
+    t3 = ['b', 'e']    
+    l = OMF::Rete::IndexedTupleSet.new([:a, :x?], [:x?])
+    r = OMF::Rete::IndexedTupleSet.new([:x?, :b], [:x?])
+    out = IndexedTupleSet.new([:x?], [:x?])
+    JoinOP.new(l, r, out)
+    l.addTuple(t1)
+    r.addTuple(t2)
+    assert_equal [[t1[1]]], out.to_a
+
+    l.removeTuple(t1)
+    assert_equal [], out.to_a
+
+    l.addTuple(t1)
+    r.addTuple(t3)
+    #assert_equal [[t1[1]]], out.to_a
+    assert_equal [['b']], out.to_a
+
+    r.removeTuple(t3)
+    assert_equal [['b']], out.to_a
+    r.removeTuple(t2)
+    assert_equal [], out.to_a
+
+  end
+  
 end

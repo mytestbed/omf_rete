@@ -143,6 +143,48 @@ class TestStore < Test::Unit::TestCase
     assert_equal [t1, t2], ts.tuples
   end
 
+  def test_tset_remove
+    t1 = [:a, :b, :c]
+
+    store = Store.create(3)
+
+    ts = MockTSet.new
+    store.registerTSet(ts, t1)
+
+    store.addTuple t1
+    store.removeTuple t1 
+    assert_equal [], ts.tuples
+  end
+  
+  def test_tset_remove_multiple_nil
+    t1 = [:a, :b, :c]
+
+    store = Store.create(3)
+
+    ts = MockTSet.new
+    store.registerTSet(ts, [nil, t1[1], nil])
+    store.addTuple t1 
+
+    t2 = [:d, :b, :f]
+    store.addTuple t2 
+
+    store.removeTuple t1
+    assert_equal [t2], ts.tuples
+    
+    r = store.find t1
+    assert_equal r, Set.new()
+    r = store.find [:a, nil, nil]
+    assert_equal r, Set.new()
+    
+    t3 = [:g, :h, :j]
+    store.addTuple t3
+    assert_equal [t2], ts.tuples
+    
+    store.removeTuple t2
+    assert_equal [], ts.tuples
+    
+  end
+  
 
 
 
@@ -157,6 +199,11 @@ class MockTSet
   def addTuple(t)
     (@tuples ||= []) << t
   end
+  
+  def removeTuple(t)
+    @tuples.delete t
+  end
+
   
   def reset()
     @tuples = nil

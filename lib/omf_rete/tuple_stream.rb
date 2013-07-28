@@ -55,33 +55,29 @@ module OMF::Rete
         self.inDescription = in_description
       end
       @receiver = receiver
-      @block = block
+      @on_add_block = block
     end
     
     def on_add(&block)
-      @block = block
+      @on_add_block = block
     end
     
+    def on_remove(&block)
+      @on_remove_block = block
+    end
+
     def addTuple(tuple)
-      if @result_map
-        rtuple = @result_map.collect do |i| tuple[i] end
-      else
-        rtuple = tuple
+      if (result = process(tuple, @on_add_block))
+        @receiver.addTuple(result)
       end
-      result = @block ? @block.call(*rtuple) : rtuple
-#        if @block
-#          if (out = @block.call(*rtuple))
-#            unless out.kind_of?(Array) && out.size == @result_size
-#              raise "Expected block to return an array of size '#{@result_size}', but got '#{out.inspect}'"
-#            end
-#            @receiver.addTuple(out)
-#          end
-#        else
-#          @receiver.addTuple(rtuple)
-#        end    
-      process_result(result, tuple)
     end    
     
+    def removeTuple(tuple)
+      if (result = process(tuple, @on_remove_block))
+        @receiver.removeTuple(result)
+      end
+    end    
+
     def source=(source)
       super
       if source
@@ -103,14 +99,26 @@ module OMF::Rete
     
     private
     
-    def process_result(result, original_tuple)
-      if (result)
-        unless result.kind_of?(Array) && result.size == @result_size
-          raise "Expected block to return an array of size '#{@result_size}', but got '#{result.inspect}'"
-        end
-        @receiver.addTuple(result)
+    def process(tuple, block)
+      if @result_map
+        rtuple = @result_map.collect do |i| tuple[i] end
+      else
+        rtuple = tuple
       end
+      result = block ? block.call(*rtuple) : rtuple
+      if (result)
+        result = verify_result(result, tuple)
+      end
+      result
     end
+
+    def verify_result(result, original_tuple)
+      unless result.kind_of?(Array) && result.size == @result_size
+        raise "Expected block to return an array of size '#{@result_size}', but got '#{result.inspect}' - #{block}"
+      end
+      result
+    end
+
     
     def _describe(out, sep )
       out.write("processing#{sep}")
@@ -157,12 +165,26 @@ module OMF::Rete
       rtuple = Tuple.new(ta, @description)
       if @results
         if @results.add?(ta)
-          @block.call(rtuple)
+          @block.arity == 1 ? @block.call(rtuple) : @block.call(rtuple, :add)          
         end
       else
-        @block.call(rtuple)          
+        @block.arity == 1 ? @block.call(rtuple) : @block.call(rtuple, :add)
       end
     end
+    
+    def removeTuple(tuple)
+      if @result_map
+        ta = @result_map.collect do |i| tuple[i] end
+      else
+        ta = tuple
+      end
+      rtuple = Tuple.new(ta, @description)
+      if @results
+        @results.delete(ta)
+      end
+      @block.arity == 1 ? @block.call(rtuple) : @block.call(rtuple, :remove)
+    end
+    
     
     # Return true if +tuple+ can be produced by this stream. A
     # +ResultStream+ only narrows a stream, so we need to
@@ -227,12 +249,9 @@ module OMF::Rete
     
     private
     
-    def process_result(result, original_tuple)
-      if (result)
-        @receiver.addTuple(original_tuple)
-      end
-    end
-    
+    def verify_result(decision, original_tuple)
+      decision ? original_tuple : nil
+    end    
     
     def _describe(out, sep )
       out.write("filtering#{sep}")

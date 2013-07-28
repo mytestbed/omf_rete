@@ -59,6 +59,25 @@ module OMF::Rete
       tuple # return added tuple
     end
     
+    def removeTuple(tuple)
+      key = @indexMap.collect do |ii|
+        tuple[ii]
+      end
+
+      if @transient
+        @onRemoveBlockWithIndex.call(key, tuple) if @onRemoveBlockWithIndex
+        @onRemoveBlock.call(tuple) if @onRemoveBlock
+      else
+        vset = @index[key]
+        if vset
+          vset.delete(tuple)
+          @onRemoveBlockWithIndex.call(key, tuple) if @onRemoveBlockWithIndex
+          @onRemoveBlock.call(tuple) if @onRemoveBlock
+        end
+      end
+      tuple # return removed tuple
+    end
+    
     # Call block for every tuple stored in this set currently and
     # in the future. In other words, the block may be called even after this
     # method returns. 
@@ -95,6 +114,34 @@ module OMF::Rete
       end
       @onAddBlockWithIndex = block
     end
+    
+    # Call block for every tuple removed from this set in the future. 
+    # In other words, the block may be called after this
+    # method returns. 
+    #
+    # The block will be called with one parameters, the 
+    # tuple removed.
+    #
+    # Note: Only one +block+ can be registered at a time
+    #
+    def on_remove(&block)
+      @onRemoveBlock = block
+    end
+
+
+    # Call block for every tuple removed from this set 
+    # in the future. In other words, the block may be called even after this
+    # method returns. 
+    #
+    # The block will be called with two parameters, the index of the tuple followed by the 
+    # tuple itself.
+    #
+    # Note: Only one +block+ can be registered at a time
+    #
+    def on_remove_with_index(&block)
+      @onRemoveBlockWithIndex = block
+    end
+    
 
     # Return the set of tuples index by +key+. 
     # Will return nil if nothing is stored for +key+

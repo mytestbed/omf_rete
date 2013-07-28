@@ -35,6 +35,7 @@ module OMF::Rete
         [side, i]
       end
       @resultLength = @combinePattern.length
+      @results = {} # Keep track of how may input tuples create the same result - necessary for 'removeTuple'
       
       leftSet.on_add_with_index do |index, ltuple|
         if (rs = rightSet[index])
@@ -51,6 +52,21 @@ module OMF::Rete
         end
       end
       
+      leftSet.on_remove_with_index do |index, ltuple|
+        if (rs = rightSet[index])
+          rs.each do |rtuple|
+            remove_result(ltuple, rtuple)
+          end
+        end
+      end
+      rightSet.on_remove_with_index do |index, rtuple|
+        if (ls = leftSet[index])
+          ls.each do |ltuple|
+            remove_result(ltuple, rtuple)
+          end
+        end
+      end
+
       # Supporting 'check_for_tuple'
       @left_pattern = @left.description.map do |bname|
         @resultSet.index_for_binding(bname)
@@ -104,9 +120,40 @@ module OMF::Rete
         result[i] = t[index]
         i += 1
       end
-      @resultSet.addTuple(result)
+
+      if @results.key? result
+        @results[result] = @results[result] + 1
+      else
+        @results[result] = 1
+        @resultSet.addTuple(result)
+      end        
+      #puts "add: #{result.inspect} (#{@results.inspect})"
     end
     
+    def remove_result(ltuple, rtuple)
+      unless @resultLength
+        i = 2
+      end
+      result = Array.new(@resultLength)
+      i = 0
+      @combinePattern.each do |setId, index|
+        t = setId == 0 ? ltuple : rtuple
+        result[i] = t[index]
+        i += 1
+      end
+      # Remove it from result set if it has only been added once
+      #puts "remove: #{result.inspect} (#{@results.inspect})"      
+      if count = @results[result]
+        if count == 1
+          @results.delete(result)
+          @resultSet.removeTuple(result)
+        else
+          @results[result] = count - 1
+        end
+      else
+        raise "Should never happen"
+      end        
+    end
     
     
   end # class

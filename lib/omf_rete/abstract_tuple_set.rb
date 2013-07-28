@@ -27,7 +27,11 @@ module OMF::Rete
     def addTuple(tuple)
       raise 'Abstract class'
     end
-    
+ 
+    def removeTuple(tuple)
+      raise 'Abstract class'
+    end
+   
     # Call block for every tuple stored in this set currently and
     # in the future. In other words, the block may be called even after this
     # method returns. 

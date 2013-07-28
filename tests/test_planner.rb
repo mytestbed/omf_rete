@@ -228,4 +228,34 @@ out: [x?, y?, z?]
     assert_equal(Set.new([[:b, :a], [:a, :b]]), resT)
     
   end
+  
+  def test_remove
+    store = Store.create(2)
+
+    # with empty store
+    resT = []
+    plan = [[nil, :x?], [:x?, nil]]
+    result = store.subscribe(:test, plan) do |t, action|
+      #puts "#{action}: #{t.to_a.inspect}"
+      action == :add ? resT << t.to_a : resT.delete(t.to_a)
+    end
+    #result.describe()
+    store.add(:a, :b)    
+    store.add(:b, :c)
+    assert_equal([[:b]], resT)
+
+    store.remove(:a, :b)  
+    assert_equal([], resT)
+    
+    store.add(:a, :b)    
+    store.add(:d, :b)    
+    assert_equal([[:b]], resT)
+    
+    store.remove(:a, :b)    
+    assert_equal([[:b]], resT)    
+
+    store.remove(:d, :b)    
+    assert_equal([], resT)     
+    #store.addTuple(:a, :b)    
+  end  
 end
