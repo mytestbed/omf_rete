@@ -8,13 +8,13 @@ include OMF::Rete
 include OMF::Rete::Planner
 
 class TestPlanner < Test::Unit::TestCase
-  
+
   def test_create_plan_builder
     plan = [[:x?, :b, :c]]
     store = Store.create(3)
     pb = PlanBuilder.new(plan, store)
   end
-  
+
   def _test_plan(plan, storeSize, expected = nil, inTuples = nil, outTuples = nil, outPattern = nil)
     store = Store.create(storeSize)
 
@@ -23,19 +23,19 @@ class TestPlanner < Test::Unit::TestCase
     result = store.subscribe(:test, plan, outPattern) do |t|
       resT << t.to_a
     end
-  
+
     out = StringIO.new
     #result.describe(out, 0, 0, '|')
     result.describe(out)
     assert_equal(expected, out.string) if expected
-    
+
     if (inTuples)
-      
+
       inTuples.each do |t|
         store.addTuple(t)
       end
       assert_equal(outTuples, resT)
-      
+
       # same test with already full store
       resT2 = []
       result2 = store.subscribe(:test2, plan, outPattern) do |t|
@@ -55,7 +55,7 @@ out: [x?]
     resT = [[:a]]
     _test_plan plan, 3, exp, inT, resT
   end
-  
+
   def test_build_simple_plan_loaded
     plan = [[:x?, :b, :c]]
     exp = %{\
@@ -67,7 +67,7 @@ out: [x?]
     _test_plan plan, 3, exp, inT, resT
   end
 
-  
+
   def test_project
     plan = [[:x?, :b, :y?]]
     exp = %{\
@@ -78,7 +78,7 @@ out: [y?]
     resT = [[:c], [:e]]
     _test_plan plan, 3, exp, inT, resT, [:y?]
   end
-  
+
   def test_simple_project
     plan = [[:x?, :b, :y?]]
     exp = %{\
@@ -89,7 +89,7 @@ out: [y?]
     resT = [[:c], [:e]]
     _test_plan plan, 3, exp, inT, resT, [:y?]
   end
-  
+
   def test_simple_project2
     plan = [[:x?, :b, :y?]]
     exp = %{\
@@ -100,7 +100,7 @@ out: [x?]
     resT = [[:a], [:d]]
     _test_plan plan, 3, exp, inT, resT, [:x?]
   end
-  
+
   def test_simple_project3
     plan = [[:x?, :b, :y?]]
     exp = %{\
@@ -120,11 +120,14 @@ out: [x?]
 }
     inT = [[:a, :b, :c], [:d, :b, :e]]
     resT = [[:a]]
-    _test_plan plan, 3, exp, inT, resT
+    assert_raise OMF::Rete::Planner::NoBindingException do
+      #_test_plan plan, 3, exp, inT, resT
+      _test_plan plan, 3, nil, nil, nil
+    end
   end
-  
+
   def test_build_single_join
-    plan = [[:x?, :b, :c], [:x?, :b, :d]]    
+    plan = [[:x?, :b, :c], [:x?, :b, :d]]
     exp = %{\
 out: [x?]
   join: [x?] => [x?]
@@ -135,9 +138,9 @@ out: [x?]
     resT = [[:a]]
     _test_plan plan, 3, exp, inT, resT
   end
-  
+
   def test_build_single_join_with_project
-    plan = [[:x?, :b, :y?], [:x?, :y?, :d]]    
+    plan = [[:x?, :b, :y?], [:x?, :y?, :d]]
     exp = %{\
 out: [y?]
   join: [x?, y?] => [y?]
@@ -150,7 +153,7 @@ out: [y?]
   end
 
   def test_build_single_join_with_project2
-    plan = [[:x?, :b, :y?], [:x?, :y?, :d]]    
+    plan = [[:x?, :b, :y?], [:x?, :y?, :d]]
     exp = %{\
 out: [y?, x?]
   join: [x?, y?] => [x?, y?]
@@ -164,9 +167,9 @@ out: [y?, x?]
 
 
   def test_build_two_joins
-    plan = [[:x?, :b, :c], 
+    plan = [[:x?, :b, :c],
             [:y?, :d, nil],
-            [:x?, :e, :y?]]    
+            [:x?, :e, :y?]]
     exp = %{\
 out: [x?, y?]
   join: [y?] => [x?, y?]
@@ -183,10 +186,10 @@ out: [x?, y?]
   end
 
   def test_build_three_joins
-    plan = [[:x?, :a, :b], 
+    plan = [[:x?, :a, :b],
             [:y?, :c, :d],
             [:x?, :e, :z?],
-            [:z?, :f, :y?]]    
+            [:z?, :f, :y?]]
     exp = %{\
 out: [x?, y?, z?]
   join: [z?] => [x?, y?, z?]
@@ -203,10 +206,10 @@ out: [x?, y?, z?]
     resT = [[:x, :y, :z]]
     _test_plan plan, 3, exp, inT, resT
   end
-  
+
 
   def test_siblings
-    store = Store.create(3)    
+    store = Store.create(3)
     store.addTuple([:a, :hasParent, :p])
     store.addTuple([:b, :hasParent, :p])
 
@@ -215,20 +218,20 @@ out: [x?, y?, z?]
       resT << t.to_a
     end
     assert_equal(Set.new, resT)
-    
+
     subscription = [
-      [:x?, :hasParent, :p?], 
+      [:x?, :hasParent, :p?],
       [:y?, :hasParent, :p?],
-      OMF::Rete.differ(:x?, :y?) 
+      OMF::Rete.differ(:x?, :y?)
     ]
     store.subscribe(:r2, subscription, [:x?, :y?]) do |t|
       store.addTuple([t[:x?], :sibling_of, t[:y?]])
     end
 
     assert_equal(Set.new([[:b, :a], [:a, :b]]), resT)
-    
+
   end
-  
+
   def test_remove
     store = Store.create(2)
 
@@ -240,22 +243,22 @@ out: [x?, y?, z?]
       action == :add ? resT << t.to_a : resT.delete(t.to_a)
     end
     #result.describe()
-    store.add(:a, :b)    
+    store.add(:a, :b)
     store.add(:b, :c)
     assert_equal([[:b]], resT)
 
-    store.remove(:a, :b)  
+    store.remove(:a, :b)
     assert_equal([], resT)
-    
-    store.add(:a, :b)    
-    store.add(:d, :b)    
-    assert_equal([[:b]], resT)
-    
-    store.remove(:a, :b)    
-    assert_equal([[:b]], resT)    
 
-    store.remove(:d, :b)    
-    assert_equal([], resT)     
-    #store.addTuple(:a, :b)    
-  end  
+    store.add(:a, :b)
+    store.add(:d, :b)
+    assert_equal([[:b]], resT)
+
+    store.remove(:a, :b)
+    assert_equal([[:b]], resT)
+
+    store.remove(:d, :b)
+    assert_equal([], resT)
+    #store.addTuple(:a, :b)
+  end
 end

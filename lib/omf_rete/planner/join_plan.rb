@@ -1,15 +1,16 @@
 
 require 'omf_rete/tuple_stream'
+require 'omf_rete/join_op'
 
 module OMF::Rete
   module Planner
-    
-    
+
+
     # This class represents a planned join op.
-    # 
+    #
     #
     class JoinPlan < AbstractPlan
-      
+
       # stream1 - first stream to join
       # stream2 - second stream to join
       # joinSet - set of bindings to join on
@@ -17,8 +18,8 @@ module OMF::Rete
       # coverSet - set of leaf nodes contributing to this result
       #
       def initialize(stream1, stream2, joinSet, resultSet, coverSet, planBuilder)
-        super coverSet, resultSet 
-        
+        super coverSet, resultSet
+
         @planBuilder = planBuilder
         @left = stream1
         @right = stream2
@@ -34,7 +35,7 @@ module OMF::Rete
           description = @result_set.to_a.sort
           resultSet = IndexedTupleSet.new(description, indexPattern, nil, opts)
         end
-          
+
         indexPattern = @join_set.to_a
         leftSet = @left.materialize(indexPattern, nil, opts)
         rightSet = @right.materialize(indexPattern, nil, opts)
@@ -46,7 +47,7 @@ module OMF::Rete
       # Create a hash for this plan which allows us to
       # to identify identical plans.
       #
-      # Please note, that there is most likely a mroe efficient way to 
+      # Please note, that there is most likely a mroe efficient way to
       # calculate a hash with the above properties
       #
       def hash()
@@ -58,7 +59,7 @@ module OMF::Rete
         end
         @hash
       end
-      
+
       # Return the cost of this plan.
       #
       # TODO: Some more meaningful heuristic will be nice
@@ -69,25 +70,25 @@ module OMF::Rete
           rcost = @right.cost()
           #@cost = 1 + 1.2 * (lcost > rcost ? lcost : rcost)
           @cost = 1 + 1.2 * (lcost + rcost)
-          
+
         end
         @cost
       end
-      
+
       def describe(out = STDOUT, offset = 0, incr = 2, sep = "\n")
         out.write(" " * offset)
         result = @result_set.to_a.sort
         join = @join_set.to_a.sort
         out.write("join: [#{join.join(', ')}] => [#{result.join(', ')}] cost: #{cost}#{sep}")
-        @left.describe(out, offset + incr, incr, sep) 
-        @right.describe(out, offset + incr, incr, sep) 
+        @left.describe(out, offset + incr, incr, sep)
+        @right.describe(out, offset + incr, incr, sep)
       end
-      
+
       def to_s
         result = @result_set.to_a.sort
         join = @join_set.to_a.sort
         "JoinPlan [#{join.join(', ')}] out: [#{result.join(', ')}]"
-      end        
+      end
     end # PlanBuilder
 
   end # Planner

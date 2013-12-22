@@ -13,45 +13,49 @@ The store holds same sized tuples with each value being assigned a name and
 type at creation to support varous convenience functions to create and retrieve
 tuples.
 
-The following code snippet creates a simple RDF store and adds a few triplets
+The following code snippet creates a simple RDF store (tuple_length: 3) and adds a  triplet
 to it.
 
-    store = OMF::Rete::Store.new(3)
-    store.add('myFridge', 'contains', 'milk')
+    eng = OMF::Rete.create_engine(tuple_length: 3)
+    eng.add_fact('myFridge', 'contains', 'milk')
 
-A filter consists of an array of tuple +patterns+ and a +block+ to be called when the store
+A rule consists of an array of tuple +patterns+ and a +block+ to be called when the store
 contains a set of tuples matching the +pattern+.
 
 The following filter only looks for a single, specific tuple. The supplied block is called
 immediately if the tuple already exists in the store, or when such a tuple would be added at a later
 stage.
 
-    store.subscribe(:report_problem, [
+    eng = OMF::Rete.create_engine(tuple_length: 3)
+    eng.add_rule(:report_problem, [
       ['myFridge', 'status', 'broken']
     ]) do |m|
     	puts "My fridge is broken"
     end
+    eng.add_fact('myFridge', 'status', 'ok')
+    eng.add_fact('myFridge', 'status', 'broken')    
   
 The following filter contains two +patterns+ and therefore both need to be matched at the same
 time in order for the block to fire. Note, that the order these tuples are added to the store
 or the interval between is irrelevant.
 
-    store.subscribe(:save_milk, [
-      ['myFridge', 'status', 'broken'],
-      ['myFridge', 'contains', 'milk'],
+    eng.subscribe(:save_milk, [
+      [:fridge?, 'status', 'broken'],
+      [:fridge?, 'contains', 'milk'],
     ]) do |m|
-    	puts "Save the milk from my fridge"
+      puts "Save the milk from #{m.fridge?}"
     end
+    eng.add_fact('myFridge', 'status', 'broken')
   
-  
-So far the filter pattern were fully specified. The <tt>:_</tt> symbol can be used as a wildcard identifier.
+So far the filter pattern were fully specified. The <tt>nil</tt> value can be used as a wildcard identifier.
 The following code snippet reports anything which is broken.
 
-    store.subscribe(:something_broken, [
-      [:_, 'status', 'broken']
+    eng.subscribe(:something_broken, [
+      [nil, 'status', 'broken']
     ]) do |m|
       puts "Something is broken"
     end
+    eng.add_fact('myFridge', 'status', 'broken')
 
 _Not implemented yet_
 Similar to OMF::Rete::Store#addNamed we can describe a pattern with a hash. Any value not named is automatically 

@@ -131,6 +131,10 @@ module OMF::Rete
         @sources = Set.new
         @filters = []
         @plans = PlanSet.new
+        if query.length == 1 && (query[0].is_a? Array)
+          # it's only rule, so we can allow source plans without binding variables
+          query[0] = SourcePlan.new(query[0], @store, false)
+        end
         query.each do |sp|
 
           if sp.is_a? FilterPlan
@@ -146,7 +150,8 @@ module OMF::Rete
               p = SourcePlan.new(sp, @store)
               @sources << p
               @plans << p
-            rescue NoBindingException
+            rescue NoBindingException => nex
+              raise nex
               # ignore sources with no bindings in them
             end
           else
@@ -240,7 +245,6 @@ module OMF::Rete
       # the 'bound' elements from the incoming tuple.
       #
       def _materialize_simple_plan(projectPattern, plan, opts, &block)
-
         unless projectPattern
           # create one from the binding varibales in plan.description
           projectPattern = []
@@ -249,9 +253,9 @@ module OMF::Rete
               projectPattern << name.to_sym
             end
           end
-          if (projectPattern.empty?)
-            raise NoBindingException.new("No binding declaration in source plan '#{plan.description.join(', ')}'")
-          end
+          # if (projectPattern.empty?)
+            # raise NoBindingException.new("No binding declaration in source plan '#{plan.description.join(', ')}'")
+          # end
         end
         description = projectPattern
 

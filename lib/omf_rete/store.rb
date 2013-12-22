@@ -42,6 +42,7 @@ module OMF::Rete::Store
     pb.build
     pb.materialize(out_pattern, &block)
   end
+  alias :add_rule :subscribe
 
   def addTuple(tarray)
     raise NotImplementedException.new
@@ -51,6 +52,7 @@ module OMF::Rete::Store
   def add(*els)
     addTuple(els)
   end
+  alias :add_fact :add
 
   # Remove a tuple from the store
   #
@@ -62,6 +64,7 @@ module OMF::Rete::Store
   def remove(*els)
     removeTuple(els)
   end
+  alias :remove_fact :remove
 
 
   # Return a set of tuples which match +pattern+. Pattern is
