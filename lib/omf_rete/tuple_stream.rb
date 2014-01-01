@@ -28,6 +28,13 @@ module OMF::Rete
       raise "Method 'check_for_tuple' is not implemented"
     end
 
+    # Detach all streams from each other as they are no longer in use
+    #
+    def detach()
+      @source.detach if @source
+      @source = nil
+    end
+
     def describe(out = STDOUT, offset = 0, incr = 2, sep = "\n")
       out.write(" " * offset)
       _describe(out, sep)

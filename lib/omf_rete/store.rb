@@ -7,6 +7,7 @@ module OMF::Rete::Store
   class StoreException < Exception; end
 
   class NotImplementedException < StoreException; end
+  class UnknownSubscriptionException < StoreException; end
 
   DEF_TYPE = :alpha
 
@@ -52,14 +53,27 @@ module OMF::Rete::Store
   end
   alias :add_rule :subscribe
 
+  def unsubscribe(name_or_plan)
+    if name_or_plan.is_a? OMF::Rete::Planner::FinalPlan
+      plan = name_or_plan
+    else
+      plan = @plans.delete(name_or_plan)
+    end
+    unless plan
+      raise UnknownSubscriptionException.new("Unknown subscription '#{name_or_plan}'")
+    end
+    plan.detach
+  end
+
   # Run a query against the store. This is essentially a short lived subscription
   # may not be catch everything if there are inserts at the same time.
   #
-  def query(query)
+  def query(query, out_pattern = nil)
     result = []
-    subscribe(null, query) do |t|
+    plan = subscribe(null, query, out_pattern) do |t|
       result << t
     end
+    unsubscribe(plan)
     result
   end
 

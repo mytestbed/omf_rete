@@ -51,7 +51,8 @@ module OMF::Rete
         else
           @source_set = OMF::Rete::IndexedTupleSet.new(@description, indexPattern)
         end
-        @store.registerTSet(@source_set, @description) if @store
+        #@store.registerTSet(@source_set, @description) if @store
+        @source_set.register_with_store(@store, @description)
       end
 
       # Return the cost of this plan.

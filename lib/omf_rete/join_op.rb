@@ -101,6 +101,15 @@ module OMF::Rete
       return false
     end
 
+    # Detach all streams from each other as they are no longer in use
+    #
+    def detach()
+      @left.detach
+      @right.detach
+      @results.clear
+    end
+
+
     def description()
       @resultSet.description
     end

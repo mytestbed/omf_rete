@@ -20,7 +20,7 @@ class TestPlanner < Test::Unit::TestCase
 
     # with empty store
     resT = []
-    result = store.subscribe(:test, plan, outPattern) do |t|
+    result = store.subscribe(nil, plan, outPattern) do |t|
       resT << t.to_a
     end
 
@@ -28,6 +28,8 @@ class TestPlanner < Test::Unit::TestCase
     #result.describe(out, 0, 0, '|')
     result.describe(out)
     assert_equal(expected, out.string) if expected
+
+    #store.unsubscribe(result)
 
     if (inTuples)
 

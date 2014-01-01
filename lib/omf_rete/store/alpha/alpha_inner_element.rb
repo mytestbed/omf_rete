@@ -4,12 +4,12 @@ module OMF::Rete::Store::Alpha
 
     class AlphaInnerElement < AlphaElement
 
-      def initialize(level, length)
-        super(level)
+      def initialize(level, length, store)
+        super(level, store)
         @length = length
         @children = {}
         if (level < length)
-          @wildChild = AlphaElement.create(level + 1, length)
+          @wildChild = AlphaElement.create(level + 1, length, store)
         end
       end
 
@@ -18,7 +18,7 @@ module OMF::Rete::Store::Alpha
       def registerTSet(tset, pattern)
         pitem = pattern[@level]
         if (pitem)  # not nil
-          child = (@children[pitem] ||= AlphaElement.create(@level + 1, @length))
+          child = (@children[pitem] ||= AlphaElement.create(@level + 1, @length, @store))
           child.registerTSet(tset, pattern)
         else # wildcard
           @wildChild.registerTSet(tset, pattern)

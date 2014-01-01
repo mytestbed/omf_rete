@@ -7,7 +7,7 @@ module OMF::Rete::Store::Alpha
   #
   class AlphaLeafElement < AlphaElement
 
-    def initialize(level)
+    def initialize(level, store)
       super
       @tsetIndex = {}
       @tsetWildcards = []
@@ -18,11 +18,16 @@ module OMF::Rete::Store::Alpha
     def registerTSet(tset, pattern)
       pitem = pattern[@level]
       leaf = (@level == @length)
-      if (pitem)  # not nil
-        (@tsetIndex[pitem] ||= []) << tset
-      else # wildcard
-        @tsetWildcards << tset
+      a = pitem ? (@tsetIndex[pitem] ||= []) : @tsetWildcards
+      a << tset
+      @store.onUnregisterTSet(tset) do
+        a.delete(tset)
       end
+      # if (pitem)  # not nil
+        # (@tsetIndex[pitem] ||= []) << tset
+      # else # wildcard
+        # @tsetWildcards << tset
+      # end
     end
 
     def addTuple(tarray)

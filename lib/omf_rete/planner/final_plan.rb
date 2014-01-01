@@ -19,6 +19,9 @@ module OMF::Rete::Planner
       @result_stream.describe(out, offset, incr, sep)
     end
 
+    def detach()
+      @result_stream.detach()
+    end
   end
 
 end # module

@@ -85,6 +85,8 @@ module OMF::Rete
       @index = {}
     end
 
+
+
     # Call block for every tuple stored in this set currently and
     # in the future. In other words, the block may be called even after this
     # method returns.
@@ -181,6 +183,8 @@ module OMF::Rete
       end
       a
     end
+
+
 
     def describe(out = STDOUT, offset = 0, incr = 2, sep = "\n")
       out.write(" " * offset)

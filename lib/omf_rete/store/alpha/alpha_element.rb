@@ -5,17 +5,18 @@ module OMF::Rete::Store::Alpha
     #
     class AlphaElement
 
-      def self.create(level, length)
+      def self.create(level, length, store)
         rem = length - level
         if (rem > 1)
-          AlphaInnerElement.new(level, length)
+          AlphaInnerElement.new(level, length, store)
         else
-          AlphaLeafElement.new(level)
+          AlphaLeafElement.new(level, store)
         end
       end
 
-      def initialize(level)
+      def initialize(level, store)
         @level = level
+        @store = store
       end
 
     end
