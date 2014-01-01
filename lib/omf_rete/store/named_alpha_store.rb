@@ -20,6 +20,7 @@ module OMF::Rete::Store
     # is always 'name' (included in length)
     #
     def initialize(name, length, opts = {})
+      super(length, opts)
       @name = name
       super length, opts
       #@store = AlphaStore.new(length - 1)

@@ -69,11 +69,7 @@ module OMF::Rete
 
 
       def describe(out = STDOUT, offset = 0, incr = 2, sep = "\n")
-        out.write(" " * offset)
-        desc = @description.collect do |e| e || '*' end
-#          index = @result_set.to_a.sort
-#          out.write("src: [#{desc.join(', ')}] index: [#{index.join(', ')}] cost: #{cost}#{sep}")
-        out.write("src: [#{desc.join(', ')}] cost: #{cost}#{sep}")
+        @source_set.describe(out, offset, incr, sep) if @source_set
       end
 
     end # SourcePlan

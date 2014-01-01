@@ -18,6 +18,7 @@ module OMF::Rete
     class PlannerException < Exception; end
 
     require 'omf_rete/planner/source_plan'
+    require 'omf_rete/planner/final_plan'
     require 'omf_rete/planner/plan_level_builder'
     require 'omf_rete/planner/plan_set'
     require 'omf_rete/planner/filter_plan'
@@ -88,6 +89,9 @@ module OMF::Rete
       # set.
       #
       def materialize(projectPattern = nil, plan = nil, opts = nil, &block)
+        unless block
+          raise PlannerException.new("Missing block to process result tuples with")
+        end
         unless plan
           plan = best_plan()
         end
@@ -96,7 +100,9 @@ module OMF::Rete
         end
         if (plan.is_a?(SourcePlan))
           # This is really just a simple pattern on the store
-          _materialize_simple_plan(projectPattern, plan, opts, &block)
+          #plan = SimpleSourcePlan.new(plan)
+          #plan.materialize(projectPattern, opts, &block)
+          endS = _materialize_simple_plan(projectPattern, plan, opts, &block)
         else
           # this is the root of the plan
           if projectPattern
@@ -106,8 +112,9 @@ module OMF::Rete
           end
           frontS, endS = _materialize_result_stream(plan, projectPattern, opts, &block)
           plan.materialize(nil, frontS, opts, &block)
-          endS
+          #endS
         end
+        FinalPlan.new(endS)
       end
 
 
@@ -267,7 +274,6 @@ module OMF::Rete
         frontS.source = src
 
         @store.registerTSet(src, plan.description) if @store
-
         endS
       end
 

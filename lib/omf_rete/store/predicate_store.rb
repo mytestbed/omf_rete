@@ -30,6 +30,7 @@ module OMF::Rete::Store
     include OMF::Rete::Store
 
     def initialize(opts = {})
+      store_initialize()
       @stores = {}
     end
 

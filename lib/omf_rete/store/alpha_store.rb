@@ -16,8 +16,10 @@ module OMF::Rete::Store
     # fixed length +length+.
     #
     def initialize(length, opts = {})
+      store_initialize()
       @length = length
-      @root = Alpha::AlphaInnerElement.new(0, length)
+      @root = Alpha::AlphaInnerElement.new(0, length, self)
+      @unregisterHandler = {}
       @index = []
       length.times do @index << {} end
     end
@@ -38,6 +40,14 @@ module OMF::Rete::Store
       end
       tset
     end
+
+    def unregisterTSet(tset)
+      (@unregisterHandler[tset] || []).each do |proc|
+        proc.call
+      end
+      @unregisterHandler.delete(tset)
+    end
+
 
     def createTSet(description, indexPattern)
       tset = Moana::Filter::IndexedTupleSet.new(description, indexPattern)
@@ -114,5 +124,12 @@ module OMF::Rete::Store
     def to_s()
       "Store"
     end
+
+    # Register a block to call whenever a TSet is being unregistered
+    #
+    def onUnregisterTSet(tset, &block)
+      (@unregisterHandler[tset] ||= []) << block
+    end
+
   end # Store
 end # Moana

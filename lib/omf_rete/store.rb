@@ -36,13 +36,32 @@ module OMF::Rete::Store
   # end
 
   def subscribe(name, query, out_pattern = nil, &block)
+    if name && @plans[name]
+      raise StoreException.new "Already have subscription '#{name}'."
+    end
+
     require 'omf_rete/planner/plan_builder'
 
     pb = OMF::Rete::Planner::PlanBuilder.new(query, self)
     pb.build
-    pb.materialize(out_pattern, &block)
+    plan = pb.materialize(out_pattern, &block)
+    if name
+      @plans[name] = plan
+    end
+    plan
   end
   alias :add_rule :subscribe
+
+  # Run a query against the store. This is essentially a short lived subscription
+  # may not be catch everything if there are inserts at the same time.
+  #
+  def query(query)
+    result = []
+    subscribe(null, query) do |t|
+      result << t
+    end
+    result
+  end
 
   def addTuple(tarray)
     raise NotImplementedException.new
@@ -96,6 +115,11 @@ module OMF::Rete::Store
   #
   def confirmLength(tuple)
     tuple.is_a?(Array) && tuple.length == @length
+  end
+
+  protected
+  def store_initialize()
+    @plans = {}
   end
 
 

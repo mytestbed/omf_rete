@@ -9,7 +9,7 @@ include OMF::Rete
 include OMF::Rete::Planner
 
 class TestFilter < Test::Unit::TestCase
-  
+
 
   def _test_plan(plan, storeSize, expected = nil, inTuples = nil, outTuples = nil, outPattern = nil)
     store = Store.create(storeSize)
@@ -22,12 +22,11 @@ class TestFilter < Test::Unit::TestCase
     result = pb.materialize(outPattern) do |t|
       resT << t.to_a
     end
-      
     out = StringIO.new
     #result.describe(out, 0, 0, '|')
     result.describe(out)
     assert_equal(expected, out.string) if expected
-    
+
     if (inTuples)
       inTuples.each do |t|
         store.addTuple(t)
@@ -36,10 +35,10 @@ class TestFilter < Test::Unit::TestCase
     end
     result
   end
-  
+
   def test_theshold_test
     plan = [
-      [:x?], 
+      [:x?],
       OMF::Rete.filter(:x?) do |x|
         x > 2
       end
@@ -53,10 +52,10 @@ out: [x?]
     resT = [[3], [4]]
     _test_plan plan, 1, exp, inT, resT
   end
-  
+
   def test_theshold_test2
     plan = [
-      [:x?, :y?], 
+      [:x?, :y?],
       OMF::Rete::filter(:x?) do |x|
         x > 2
       end,

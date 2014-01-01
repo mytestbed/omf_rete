@@ -23,6 +23,7 @@ module OMF::Rete::Store
 
     # @param opts :include_object Make the fist element the object
     def initialize(opts = {})
+      store_initialize()
       @include_object = opts[:name] || (opts[:include_object] == true ? self : nil)
       @object = nil
       @tsets = {}
